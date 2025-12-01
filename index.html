@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>雅思单词闪卡</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f5f5f5;
+      box-sizing: border-box;
+    }
+    .app-container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 20px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .controls {
+      background: #ffffff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .controls label {
+      margin-right: 4px;
+    }
+    .controls input[type="number"] {
+      width: 90px;
+      padding: 4px 6px;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #007bff;
+      color: #fff;
+    }
+    .btn:disabled {
+      background: #bbb;
+      cursor: not-allowed;
+    }
+    .info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      padding: 28px 20px;
+      text-align: center;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card-word {
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .card-phonetic {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    .card-meaning {
+      font-size: 18px;
+      color: #333;
+    }
+    .card-tip {
+      font-size: 12px;
+      color: #999;
+      margin-top: 12px;
+    }
+    .status-bar {
+      font-size: 13px;
+      color: #555;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    .error {
+      color: red;
+      font-size: 13px;
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <h1>雅思单词闪卡</h1>
+
+    <div class="controls">
+      <div>
+        <label for="groupInput">分组编号：</label>
+        <input id="groupInput" type="number" min="1" step="1" />
+        <button id="loadGroupBtn" class="btn">加载分组</button>
+      </div>
+      <div class="info" id="groupInfo"></div>
+    </div>
+
+    <div id="card" class="card">
+      <div id="cardWord" class="card-word">加载中…</div>
+      <div id="cardPhonetic" class="card-phonetic"></div>
+      <div id="cardMeaning" class="card-meaning hidden"></div>
+      <div class="card-tip">点击卡片显示中文释义，再点一次切换到下一个单词</div>
+    </div>
+
+    <div class="status-bar" id="statusBar"></div>
+    <div class="error" id="errorBox"></div>
+  </div>
+
+  <script>
+    const DATA_URL = 'ielts_words_flashcards.json'; // 确保和下载的 JSON 文件同名
+
+    let allCards = [];
+    let totalGroups = 0;
+    let currentGroup = 1;
+    let groupCards = [];
+    let currentIndex = 0;
+    let showMeaning = false;
+
+    const groupInput = document.getElementById('groupInput');
+    const loadGroupBtn = document.getElementById('loadGroupBtn');
+    const groupInfo = document.getElementById('groupInfo');
+    const card = document.getElementById('card');
+    const cardWord = document.getElementById('cardWord');
+    const cardPhonetic = document.getElementById('cardPhonetic');
+    const cardMeaning = document.getElementById('cardMeaning');
+    const statusBar = document.getElementById('statusBar');
+    const errorBox = document.getElementById('errorBox');
+
+    // 载入 JSON 数据
+    async function loadData() {
+      try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) {
+          throw new Error('无法加载单词数据：' + res.status);
+        }
+        allCards = await res.json();
+        if (!Array.isArray(allCards) || allCards.length === 0) {
+          throw new Error('单词数据为空或格式错误');
+        }
+        totalGroups = Math.ceil(allCards.length / 10);
+        groupInput.value = 1;
+        groupInput.min = 1;
+        groupInput.max = totalGroups;
+        groupInfo.textContent = `共 ${allCards.length} 个单词，分为 ${totalGroups} 组，每组 10 个左右（编号 1–10, 11–20, 21–30 …）`;
+        errorBox.textContent = '';
+        loadGroup(1);
+      } catch (e) {
+        console.error(e);
+        errorBox.textContent = e.message || '加载数据时出错';
+        cardWord.textContent = '加载失败';
+      }
+    }
+
+    function loadGroup(groupNumber) {
+      if (!allCards.length) return;
+      if (groupNumber < 1) groupNumber = 1;
+      if (groupNumber > totalGroups) groupNumber = totalGroups;
+      currentGroup = groupNumber;
+
+      groupCards = allCards.filter(c => c.group === currentGroup);
+      currentIndex = 0;
+      showMeaning = false;
+
+      if (!groupCards.length) {
+        cardWord.textContent = `该分组暂无单词（组号：${currentGroup}）`;
+        cardPhonetic.textContent = '';
+        cardMeaning.textContent = '';
+        cardMeaning.classList.add('hidden');
+        statusBar.textContent = '';
+        return;
+      }
+
+      updateCard();
+      const label = groupCards[0].group_label || '';
+      groupInfo.textContent = `当前分组：第 ${currentGroup} 组（单词编号 ${label}），本组共 ${groupCards.length} 个单词`;
+    }
+
+    function updateCard() {
+      const cardData = groupCards[currentIndex];
+      if (!cardData) return;
+
+      cardWord.textContent = cardData.word || '';
+      cardPhonetic.textContent = cardData.phonetic || '';
+      cardMeaning.textContent = cardData.meaning || '';
+
+      if (showMeaning) {
+        cardMeaning.classList.remove('hidden');
+      } else {
+        cardMeaning.classList.add('hidden');
+      }
+
+      statusBar.textContent = `组 ${currentGroup} | 单词 ${currentIndex + 1} / ${groupCards.length} （全体编号：${cardData.id}）`;
+    }
+
+    function nextCard() {
+      if (!groupCards.length) return;
+      currentIndex++;
+      showMeaning = false;
+      if (currentIndex >= groupCards.length) {
+        currentIndex = 0; // 循环
+      }
+      updateCard();
+    }
+
+    // 点击卡片：第一次点击显示释义，第二次点击进入下一个单词
+    card.addEventListener('click', () => {
+      if (!groupCards.length) return;
+      if (!showMeaning) {
+        showMeaning = true;
+        cardMeaning.classList.remove('hidden');
+      } else {
+        nextCard();
+      }
+    });
+
+    // 点击“加载分组”按钮
+    loadGroupBtn.addEventListener('click', () => {
+      const val = parseInt(groupInput.value, 10);
+      if (isNaN(val)) return;
+      loadGroup(val);
+    });
+
+    // 回车键也能切换分组
+    groupInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        loadGroupBtn.click();
+      }
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
