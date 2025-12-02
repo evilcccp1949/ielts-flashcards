@@ -1,59 +1,160 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>景河泉抵扣卡查询</title>
-    <style>
-        body { font-family: Arial; padding: 20px; }
-        .box { border: 1px solid #ccc; padding: 20px; border-radius: 10px; }
-        .ok { color: green; font-weight: bold; }
-        .no { color: red; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>景河泉抵扣卡查询</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    .card {
+      max-width: 480px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 24px 20px 28px;
+    }
+    h1 {
+      font-size: 20px;
+      text-align: center;
+      margin: 0 0 16px;
+    }
+    .card-id {
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      word-break: break-all;
+      margin-bottom: 10px;
+    }
+    .field {
+      display: flex;
+      justify-content: space-between;
+      font-size: 15px;
+      margin: 6px 0;
+    }
+    .label {
+      color: #666;
+    }
+    .value {
+      font-weight: 500;
+      color: #222;
+    }
+    .status {
+      font-weight: 600;
+    }
+    .status[data-status="未激活"] {
+      color: #ff9800;
+    }
+    .status[data-status="已使用"],
+    .status[data-status="已作废"] {
+      color: #f44336;
+    }
+    .status[data-status="正常"] {
+      color: #4caf50;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 12px;
+      color: #999;
+    }
+    .error {
+      text-align: center;
+      color: #f44336;
+      padding: 50px 20px;
+      font-size: 15px;
+    }
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 50px 20px;
+      font-size: 15px;
+    }
+  </style>
 </head>
-
 <body>
-<h2>景河泉抵扣卡查询</h2>
-
-<div class="box">
-    <p>卡号：<span id="card_id"></span></p>
-    <p>面额：<span id="amount"></span></p>
-    <p>当前余额：<span id="balance"></span></p>
-    <p>状态：<span id="status"></span></p>
-    <p>发卡日期：<span id="date"></span></p>
-    <p>备注：<span id="note"></span></p>
-</div>
+<div id="app" class="loading">正在加载卡片信息...</div>
 
 <script>
-    async function loadCard(){
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get("id");
+  async function main() {
+    const app = document.getElementById('app');
 
-        if(!id){
-            document.body.innerHTML = "<h3>❌ 无效的卡号</h3>";
-            return;
-        }
+    // 1. 从网址 ?id= 后面读取卡号
+    const params = new URLSearchParams(window.location.search);
+    const cardId = params.get('id');
 
-        document.getElementById("card_id").innerText = id;
-
-        const res = await fetch("cards.json");
-        const data = await res.json();
-
-        const card = data.find(c => c.card_id === id);
-
-        if(!card){
-            document.body.innerHTML = "<h3>❌ 未找到该卡号</h3>";
-            return;
-        }
-
-        document.getElementById("amount").innerText = card.amount;
-        document.getElementById("balance").innerText = card.balance;
-        document.getElementById("date").innerText = card.date;
-        document.getElementById("status").innerText = card.status;
-        document.getElementById("note").innerText = card.note;
+    if (!cardId) {
+      app.className = 'error';
+      app.textContent = '链接缺少卡号参数：请使用正确的二维码或链接（?id=卡号）';
+      return;
     }
 
-    loadCard();
-</script>
+    try {
+      // 2. 读取 cards.json（和 card.html 在同一目录）
+      const res = await fetch('cards.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('无法加载卡片数据（' + res.status + '）');
 
+      const cards = await res.json();
+
+      // 3. 精确匹配 card_id
+      const card = cards.find(c => c.card_id === cardId);
+
+      if (!card) {
+        app.className = 'error';
+        app.textContent = '未找到该卡号：' + cardId + '，请联系店家核对。';
+        return;
+      }
+
+      // 4. 显示卡片信息
+      app.className = 'card';
+      app.innerHTML = `
+        <h1>景河泉抵扣卡查询</h1>
+        <div class="card-id">卡号：${card.card_id}</div>
+
+        <div class="field">
+          <div class="label">面额</div>
+          <div class="value">${card.amount} 元</div>
+        </div>
+        <div class="field">
+          <div class="label">发行日期</div>
+          <div class="value">${card.date}</div>
+        </div>
+        <div class="field">
+          <div class="label">初始金额</div>
+          <div class="value">${card.initial} 元</div>
+        </div>
+        <div class="field">
+          <div class="label">当前余额</div>
+          <div class="value">${card.balance} 元</div>
+        </div>
+        <div class="field">
+          <div class="label">状态</div>
+          <div class="value status" data-status="${card.status}">${card.status}</div>
+        </div>
+        <div class="field">
+          <div class="label">备注</div>
+          <div class="value">${card.note || '—'}</div>
+        </div>
+
+        <div class="footer">
+          本卡仅限景河泉店内抵扣酒水消费，不找零、不兑现金、遗失不补。<br/>
+          （演示系统，仅供内部测试使用）
+        </div>
+      `;
+    } catch (err) {
+      console.error(err);
+      app.className = 'error';
+      app.textContent = '查询出错：' + err.message;
+    }
+  }
+
+  main();
+</script>
 </body>
 </html>
+
