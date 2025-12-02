@@ -107,8 +107,10 @@
 </head>
 <body>
 
+<!-- 这里是卡片信息区域，由 JS 根据 ?id= 卡号 渲染 -->
 <div id="app" class="loading">正在加载卡片信息...</div>
 
+<!-- 这里是固定显示的使用规则，对所有卡号通用 -->
 <div class="rules">
   <h2>景河泉抵扣卡使用规则</h2>
 
@@ -127,6 +129,7 @@
   </ul>
 
   <p class="item-title">4. 抵扣金额不可兑换现金，不找零，不挂失。</p>
+  <p class="item-title">5. 最终解释权归景河泉店所有。</p>
 </div>
 
 <div class="footer">
@@ -137,6 +140,7 @@
   async function main() {
     const app = document.getElementById('app');
 
+    // 从链接 ?id= 后面取卡号
     const params = new URLSearchParams(window.location.search);
     const cardId = params.get('id');
 
@@ -147,10 +151,12 @@
     }
 
     try {
+      // 读取 cards.json（和 card.html 在同一目录）
       const res = await fetch('cards.json', { cache: 'no-store' });
       if (!res.ok) throw new Error('无法加载卡片数据（' + res.status + '）');
 
       const cards = await res.json();
+      // 精确匹配 card_id
       const card = cards.find(c => c.card_id === cardId);
 
       if (!card) {
@@ -159,6 +165,7 @@
         return;
       }
 
+      // 渲染卡片信息
       app.className = 'card';
       app.innerHTML = `
         <h1>景河泉抵扣卡查询</h1>
@@ -200,4 +207,3 @@
 </script>
 </body>
 </html>
-
