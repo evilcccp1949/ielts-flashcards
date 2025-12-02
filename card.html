@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>景河泉抵扣卡查询</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 20px; border-radius: 10px; }
+        .ok { color: green; font-weight: bold; }
+        .no { color: red; font-weight: bold; }
+    </style>
+</head>
+
+<body>
+<h2>景河泉抵扣卡查询</h2>
+
+<div class="box">
+    <p>卡号：<span id="card_id"></span></p>
+    <p>面额：<span id="amount"></span></p>
+    <p>当前余额：<span id="balance"></span></p>
+    <p>状态：<span id="status"></span></p>
+    <p>发卡日期：<span id="date"></span></p>
+    <p>备注：<span id="note"></span></p>
+</div>
+
+<script>
+    async function loadCard(){
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+
+        if(!id){
+            document.body.innerHTML = "<h3>❌ 无效的卡号</h3>";
+            return;
+        }
+
+        document.getElementById("card_id").innerText = id;
+
+        const res = await fetch("cards.json");
+        const data = await res.json();
+
+        const card = data.find(c => c.card_id === id);
+
+        if(!card){
+            document.body.innerHTML = "<h3>❌ 未找到该卡号</h3>";
+            return;
+        }
+
+        document.getElementById("amount").innerText = card.amount;
+        document.getElementById("balance").innerText = card.balance;
+        document.getElementById("date").innerText = card.date;
+        document.getElementById("status").innerText = card.status;
+        document.getElementById("note").innerText = card.note;
+    }
+
+    loadCard();
+</script>
+
+</body>
+</html>
