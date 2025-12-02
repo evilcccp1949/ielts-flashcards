@@ -12,17 +12,17 @@
       background: #f5f5f5;
     }
     .card {
-      max-width: 480px;
-      margin: 40px auto;
+      max-width: 520px;
+      margin: 20px auto 16px;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      padding: 24px 20px 28px;
+      padding: 18px 16px 22px;
     }
     h1 {
       font-size: 20px;
       text-align: center;
-      margin: 0 0 16px;
+      margin: 0 0 8px;
     }
     .card-id {
       font-size: 13px;
@@ -50,58 +50,107 @@
     .status[data-status="未激活"] {
       color: #ff9800;
     }
-    .status[data-status="已使用"],
-    .status[data-status="已作废"] {
+    .status[data-status="已用完"],
+    .status[data-status="作废"] {
       color: #f44336;
     }
     .status[data-status="正常"] {
       color: #4caf50;
     }
-    .footer {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 12px;
-      color: #999;
+    .rules {
+      max-width: 520px;
+      margin: 0 auto 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      padding: 14px 14px 16px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #333;
     }
-    .error {
-      text-align: center;
-      color: #f44336;
-      padding: 50px 20px;
+    .rules h2 {
       font-size: 15px;
+      margin: 0 0 6px;
+      font-weight: 600;
     }
-    .loading {
+    .rules p {
+      margin: 4px 0;
+    }
+    .rules .item-title {
+      font-weight: 600;
+    }
+    .rules ul {
+      padding-left: 18px;
+      margin: 4px 0;
+    }
+    .rules li {
+      margin: 2px 0;
+    }
+    .error, .loading {
+      max-width: 520px;
+      margin: 40px auto;
       text-align: center;
       color: #666;
-      padding: 50px 20px;
       font-size: 15px;
+      padding: 0 16px;
+    }
+    .error {
+      color: #f44336;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 14px;
     }
   </style>
 </head>
 <body>
+
 <div id="app" class="loading">正在加载卡片信息...</div>
+
+<div class="rules">
+  <h2>景河泉抵扣卡使用规则</h2>
+
+  <p class="item-title">1. 每日限使用一次抵扣额度。</p>
+  <p>每位持卡人每天仅限使用一次抵扣额度，当日未使用不可累积顺延。</p>
+
+  <p class="item-title">2. 基础抵扣额度为 20 元/天。</p>
+  <p>任意消费均可使用当日基础抵扣 20 元。</p>
+
+  <p class="item-title">3. 满额部分自动叠加额外抵扣。</p>
+  <p>在基础抵扣 20 元的基础上，单笔消费达到以下金额，可享受当日更高抵扣：</p>
+  <ul>
+    <li>单笔满 60 元 → 当日抵扣 40 元（基础 20 + 额外 20）</li>
+    <li>单笔满 100 元 → 当日抵扣 50 元（基础 20 + 额外 30）</li>
+    <li>单笔满 150 元 → 当日抵扣 70 元（基础 20 + 额外 50）</li>
+  </ul>
+
+  <p class="item-title">4. 抵扣金额不可兑换现金，不找零，不挂失。</p>
+</div>
+
+<div class="footer">
+  本卡仅限景河泉店内酒水消费抵扣，具体解释以店内公示为准。
+</div>
 
 <script>
   async function main() {
     const app = document.getElementById('app');
 
-    // 1. 从网址 ?id= 后面读取卡号
     const params = new URLSearchParams(window.location.search);
     const cardId = params.get('id');
 
     if (!cardId) {
       app.className = 'error';
-      app.textContent = '链接缺少卡号参数：请使用正确的二维码或链接（?id=卡号）';
+      app.textContent = '链接缺少卡号参数：请使用正确的二维码或链接（?id=卡号）。';
       return;
     }
 
     try {
-      // 2. 读取 cards.json（和 card.html 在同一目录）
       const res = await fetch('cards.json', { cache: 'no-store' });
       if (!res.ok) throw new Error('无法加载卡片数据（' + res.status + '）');
 
       const cards = await res.json();
-
-      // 3. 精确匹配 card_id
       const card = cards.find(c => c.card_id === cardId);
 
       if (!card) {
@@ -110,7 +159,6 @@
         return;
       }
 
-      // 4. 显示卡片信息
       app.className = 'card';
       app.innerHTML = `
         <h1>景河泉抵扣卡查询</h1>
@@ -139,11 +187,6 @@
         <div class="field">
           <div class="label">备注</div>
           <div class="value">${card.note || '—'}</div>
-        </div>
-
-        <div class="footer">
-          本卡仅限景河泉店内抵扣酒水消费，不找零、不兑现金、遗失不补。<br/>
-          （演示系统，仅供内部测试使用）
         </div>
       `;
     } catch (err) {
