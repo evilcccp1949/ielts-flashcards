@@ -1,0 +1,29 @@
+[
+  {
+    "card_id": "JHQNX-2025/12/08-100-001",
+    "amount": 100,
+    "date": "2025/12/8",
+    "initial": 100,
+    "balance": 100,
+    "status": "未激活",
+    "note": "那新店"
+  },
+  {
+    "card_id": "JHQNX-2025/12/08-200-001",
+    "amount": 200,
+    "date": "2025/12/8",
+    "initial": 200,
+    "balance": 200,
+    "status": "未激活",
+    "note": "那新店"
+  },
+  {
+    "card_id": "JHQNX-2025/12/08-300-001",
+    "amount": 300,
+    "date": "2025/12/18",
+    "initial": 300,
+    "balance": 300,
+    "status": "未激活",
+    "note": "那新店"
+  }
+]
