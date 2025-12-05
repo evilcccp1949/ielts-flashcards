@@ -165,7 +165,7 @@
         return;
       }
 
-      // 渲染卡片信息
+      // 渲染卡片基本信息
       app.className = 'card';
       app.innerHTML = `
         <h1>景河泉抵扣卡查询</h1>
@@ -196,6 +196,22 @@
           <div class="value">${card.note || '—'}</div>
         </div>
       `;
+
+      // === 新增：根据卡号自动生成二维码图片路径 ===
+      // 例：卡号 JHQNX-2025/12/08-100-001
+      // 文件名：QR_JHQNX-2025_12_08-100-001.png
+      // 路径：qr/QR_JHQNX-2025_12_08-100-001.png
+      const qrFile = "QR_" + card.card_id.replace(/\//g, "_") + ".png";
+      const qrPath = "qr/" + qrFile;
+
+      app.innerHTML += `
+        <div style="margin-top:14px; text-align:center;">
+          <div style="font-size:14px; margin-bottom:6px; color:#555;">实体卡二维码</div>
+          <img src="${qrPath}" alt="二维码" style="width:180px; height:180px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.12);" />
+          <div style="font-size:11px; color:#999; margin-top:4px;">如二维码无法识别，请联系店家核对卡号</div>
+        </div>
+      `;
+
     } catch (err) {
       console.error(err);
       app.className = 'error';
