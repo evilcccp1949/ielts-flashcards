@@ -1,225 +1,49 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>景河泉抵扣卡查询</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <title>景河泉抵扣卡查询入口</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f5f5f5;
-    }
-    .card {
-      max-width: 520px;
-      margin: 20px auto 16px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      padding: 18px 16px 22px;
+      font-family: -apple-system, 'PingFang SC', 'Microsoft Yahei', sans-serif;
+      text-align: center;
+      padding: 40px 16px;
+      background: #fafafa;
     }
     h1 {
-      font-size: 20px;
-      text-align: center;
-      margin: 0 0 8px;
+      font-size: 26px;
+      margin-bottom: 30px;
     }
-    .card-id {
-      font-size: 13px;
-      color: #666;
-      text-align: center;
-      word-break: break-all;
-      margin-bottom: 10px;
+    .box {
+      background: #ffffff;
+      padding: 30px 20px;
+      margin: 0 auto;
+      max-width: 480px;
+      border-radius: 18px;
+      box-shadow: 0 5px 16px rgba(0,0,0,0.12);
     }
-    .field {
-      display: flex;
-      justify-content: space-between;
-      font-size: 15px;
-      margin: 6px 0;
-    }
-    .label {
-      color: #666;
-    }
-    .value {
-      font-weight: 500;
-      color: #222;
-    }
-    .status {
-      font-weight: 600;
-    }
-    .status[data-status="未激活"] {
-      color: #ff9800;
-    }
-    .status[data-status="已用完"],
-    .status[data-status="作废"] {
-      color: #f44336;
-    }
-    .status[data-status="正常"] {
-      color: #4caf50;
-    }
-    .rules {
-      max-width: 520px;
-      margin: 0 auto 20px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      padding: 14px 14px 16px;
-      font-size: 13px;
-      line-height: 1.55;
-      color: #333;
-    }
-    .rules h2 {
-      font-size: 15px;
-      margin: 0 0 6px;
-      font-weight: 600;
-    }
-    .rules p {
-      margin: 4px 0;
-    }
-    .rules .item-title {
-      font-weight: 600;
-    }
-    .rules ul {
-      padding-left: 18px;
-      margin: 4px 0;
-    }
-    .rules li {
-      margin: 2px 0;
-    }
-    .error, .loading {
-      max-width: 520px;
-      margin: 40px auto;
-      text-align: center;
-      color: #666;
-      font-size: 15px;
-      padding: 0 16px;
-    }
-    .error {
-      color: #f44336;
-    }
-    .footer {
-      text-align: center;
-      font-size: 11px;
-      color: #999;
-      margin-bottom: 14px;
+    .tip {
+      font-size: 18px;
+      line-height: 1.7;
+      margin-bottom: 20px;
     }
   </style>
 </head>
+
 <body>
+  <h1>景河泉抵扣卡查询</h1>
 
-<!-- 这里是卡片信息区域，由 JS 根据 ?id= 卡号 渲染 -->
-<div id="app" class="loading">正在加载卡片信息...</div>
+  <div class="box">
+    <div class="tip">
+      请将抵扣卡交给店员<br>
+      由店员扫码查询余额即可
+    </div>
+    <div style="color:#888; font-size:14px;">
+      顾客不用输入、不用扫码卡片二维码
+    </div>
+  </div>
 
-<!-- 这里是固定显示的使用规则，对所有卡号通用 -->
-<div class="rules">
-  <h2>景河泉抵扣卡使用规则</h2>
-
-  <p class="item-title">1. 每日限使用一次抵扣额度。</p>
-  <p>每位持卡人每天仅限使用一次抵扣额度，当日未使用不可累积顺延。</p>
-
-  <p class="item-title">2. 基础抵扣额度为 20 元/天。</p>
-  <p>任意消费均可使用当日基础抵扣 20 元。</p>
-
-  <p class="item-title">3. 满额部分自动叠加额外抵扣。</p>
-  <p>在基础抵扣 20 元的基础上，单笔消费达到以下金额，可享受当日更高抵扣：</p>
-  <ul>
-    <li>单笔满 60 元 → 当日抵扣 40 元（基础 20 + 额外 20）</li>
-    <li>单笔满 100 元 → 当日抵扣 50 元（基础 20 + 额外 30）</li>
-    <li>单笔满 150 元 → 当日抵扣 70 元（基础 20 + 额外 50）</li>
-  </ul>
-
-  <p class="item-title">4. 抵扣金额不可兑换现金，不找零，不挂失。</p>
-  <p class="item-title">5. 最终解释权归景河泉店所有。</p>
-</div>
-
-<div class="footer">
-  本卡仅限景河泉店内酒水消费抵扣，具体解释以店内公示为准。
-</div>
-
-<script>
-  async function main() {
-    const app = document.getElementById('app');
-
-    // 从链接 ?id= 后面取卡号
-    const params = new URLSearchParams(window.location.search);
-    const cardId = params.get('id');
-
-    if (!cardId) {
-      app.className = 'error';
-      app.textContent = '链接缺少卡号参数：请使用正确的二维码或链接（?id=卡号）。';
-      return;
-    }
-
-    try {
-      // 读取 cards.json（和 card.html 在同一目录）
-      const res = await fetch('cards.json', { cache: 'no-store' });
-      if (!res.ok) throw new Error('无法加载卡片数据（' + res.status + '）');
-
-      const cards = await res.json();
-      // 精确匹配 card_id
-      const card = cards.find(c => c.card_id === cardId);
-
-      if (!card) {
-        app.className = 'error';
-        app.textContent = '未找到该卡号：' + cardId + '，请联系店家核对。';
-        return;
-      }
-
-      // 渲染卡片基本信息
-      app.className = 'card';
-      app.innerHTML = `
-        <h1>景河泉抵扣卡查询</h1>
-        <div class="card-id">卡号：${card.card_id}</div>
-
-        <div class="field">
-          <div class="label">面额</div>
-          <div class="value">${card.amount} 元</div>
-        </div>
-        <div class="field">
-          <div class="label">发行日期</div>
-          <div class="value">${card.date}</div>
-        </div>
-        <div class="field">
-          <div class="label">初始金额</div>
-          <div class="value">${card.initial} 元</div>
-        </div>
-        <div class="field">
-          <div class="label">当前余额</div>
-          <div class="value">${card.balance} 元</div>
-        </div>
-        <div class="field">
-          <div class="label">状态</div>
-          <div class="value status" data-status="${card.status}">${card.status}</div>
-        </div>
-        <div class="field">
-          <div class="label">备注</div>
-          <div class="value">${card.note || '—'}</div>
-        </div>
-      `;
-
-      // === 新增：根据卡号自动生成二维码图片路径 ===
-      // 例：卡号 JHQNX-2025/12/08-100-001
-      // 文件名：QR_JHQNX-2025_12_08-100-001.png
-      // 路径：qr/QR_JHQNX-2025_12_08-100-001.png
-      const qrFile = "QR_" + card.card_id.replace(/\//g, "_") + ".png";
-      const qrPath = "qr/" + qrFile;
-
-      app.innerHTML += `
-        <div style="margin-top:14px; text-align:center;">
-          <div style="font-size:14px; margin-bottom:6px; color:#555;">实体卡二维码</div>
-          <img src="${qrPath}" alt="二维码" style="width:180px; height:180px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.12);" />
-          <div style="font-size:11px; color:#999; margin-top:4px;">如二维码无法识别，请联系店家核对卡号</div>
-        </div>
-      `;
-
-    } catch (err) {
-      console.error(err);
-      app.className = 'error';
-      app.textContent = '查询出错：' + err.message;
-    }
-  }
-
-  main();
-</script>
 </body>
 </html>
